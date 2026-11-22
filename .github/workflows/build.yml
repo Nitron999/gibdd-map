@@ -1,11 +1,27 @@
-name: Build
+name: Build DPS Android APK & Windows EXE
 
 on:
   push:
   workflow_dispatch:
 
 jobs:
-  android:
+  windows-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install tkintermapview pyinstaller
+      - name: Build EXE
+        run: python -m PyInstaller --onefile --windowed --collect-all tkintermapview --name GibddMap windows_app.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/GibddMap.exe
+
+  android-apk:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -17,19 +33,5 @@ jobs:
           buildozer_version: stable
       - uses: actions/upload-artifact@v4
         with:
-          name: apk
+          name: android-apk
           path: ${{ steps.buildozer.outputs.filename }}
-
-  windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install -r requirements.txt pyinstaller
-      - run: python -m PyInstaller --onedir --windowed --name GibddMap main.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-exe
-          path: dist/GibddMap
